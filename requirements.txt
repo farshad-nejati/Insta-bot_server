@@ -6,3 +6,4 @@ instagrapi
 pandas
 requests
 matplotlib
+openpyxl
