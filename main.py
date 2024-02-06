@@ -10,6 +10,7 @@ from instagram_uploader.uploader import InstagramUploader
 from image_processing.excel_processor import ExcelProcessor
 import pandas as pd  # Make sure to have pandas installed (you can install it with 'pip install pandas')
 
+from pydantic import BaseModel
 
 ALLOWED_EXTENSIONS = {'.xlsx', '.xls'}
 UPLOAD_DIR = Path() / 'uploads'
@@ -28,6 +29,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+class SetTimeModel(BaseModel):
+    caption: str
+    day: int | None = None
+    hour: int
+    minute: int
+
+
 
 @app.get("/")
 async def main():
@@ -100,10 +110,15 @@ def append_to_master_file(file_upload:UploadFile):
 
 # API endpoint to set hour and minute
 @app.post("/set_time/")
-async def set_time( minute: int, hour: int, caption: str, day: int | None = None,):
+async def set_time(item:SetTimeModel):
     script_dir_path = os.path.dirname(os.path.realpath(__file__))
     script_path = os.path.join(script_dir_path, 'insta_bot.py')
 
+    caption= item.caption
+    day= item.day
+    hour= item.hour
+    minute= item.minute
+    
     try:
         # Validate hour and minute
         if not 0 <= hour <= 23 or not 0 <= minute <= 59:
