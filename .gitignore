@@ -1,0 +1,4 @@
+/generated/*
+*.zip
+*.xlsx
+credentials.txt
