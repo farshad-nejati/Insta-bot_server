@@ -63,8 +63,8 @@ if __name__ == '__main__':
 
      # Check if there is an argument
     if len(sys.argv) < 2:
-        print("Failed to run. Usage: python3 /<file-path>/insta_bot.py [caption]")
-        do_logging("Failed to run. Usage: python3 /<file-path>/insta_bot.py [caption]")
+        print("Failed to run. Usage: python3 /<file-path>/insta_bot.py '[caption]'")
+        do_logging("Failed to run. Usage: python3 /<file-path>/insta_bot.py '[caption]'")
     else:
         # Get the caption from the command line argument
         post_caption = sys.argv[1]

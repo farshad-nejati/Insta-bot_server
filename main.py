@@ -131,7 +131,7 @@ async def set_time(item:SetTimeModel):
         cron.remove_all()
 
         # Add new cron job to run the script at the specified time
-        job = cron.new(command=f"python3 {script_path} {caption}")  # Replace '/path/to/your/script.py' with the actual path
+        job = cron.new(command=f"python3 {script_path} '{caption}'")  # Replace '/path/to/your/script.py' with the actual path
         job.minute.on(minute)
         job.hour.on(hour)
 
