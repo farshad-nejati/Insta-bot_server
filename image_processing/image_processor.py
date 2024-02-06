@@ -13,12 +13,13 @@ class ImageProcessor:
         if not os.path.exists(output_directory):
             os.makedirs(output_directory)
 
-        fig, ax = plt.subplots(figsize=(19.20, 10.80))
-        ax.text(0.5, 0.75, latex_equation, size=30, ha='right', va='center')
-        ax.axis('off')
-
+        fig, ax = plt.subplots(figsize=(8, 6))  # Increase the size of the figure 
+        ax.text(-0.13, 0.9, latex_equation, size=13, ha='left', va='center')  # Adjusted y position 
+        ax.axis('off')  # Turn off the axis 
+ 
         for i, choice in enumerate(choices):
-            ax.text(0.5, 0.4 - i * 0.2, choice, size=14, ha='left', va='center')
+            ax.text(-0.15, 0.6 - i * 0.15, choice, size=14, ha='left', va='center')
+
 
         current_date = datetime.now().strftime("%Y%m%d")
         filename_with_date = f"{self.output_prefix.split('.')[0]}_{current_date}.jpg"
