@@ -100,20 +100,20 @@ def append_to_master_file(file_upload:UploadFile):
 
 # API endpoint to set hour and minute
 @app.post("/set_time/")
-async def set_time(hour: int, minute: int):
+async def set_time(hour: int, minute: int, caption: str):
     try:
         # Validate hour and minute
         if not 0 <= hour <= 23 or not 0 <= minute <= 59:
             raise HTTPException(status_code=400, detail="Invalid hour or minute")
 
         # Initialize cron job
-        cron = CronTab(user='root')
+        cron = CronTab(user=True)
 
         # Remove existing cron jobs
         cron.remove_all()
 
         # Add new cron job to run the script at the specified time
-        job = cron.new(command='python F:\\Project\\00_Mini.Projects\\insta_bot\\Application\\Server\\insta_uploader.py')  # Replace '/path/to/your/script.py' with the actual path
+        job = cron.new(command=f"python3 /home/farshad/Desktop/insta_bot/Application/Server/insta_bot.py {caption}")  # Replace '/path/to/your/script.py' with the actual path
         job.minute.on(minute)
         job.hour.on(hour)
 
