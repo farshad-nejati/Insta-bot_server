@@ -100,7 +100,7 @@ def append_to_master_file(file_upload:UploadFile):
 
 # API endpoint to set hour and minute
 @app.post("/set_time/")
-async def set_time(hour: int, minute: int, caption: str):
+async def set_time( minute: int, hour: int, caption: str, day: int | None = None,):
     try:
         # Validate hour and minute
         if not 0 <= hour <= 23 or not 0 <= minute <= 59:
@@ -117,10 +117,16 @@ async def set_time(hour: int, minute: int, caption: str):
         job.minute.on(minute)
         job.hour.on(hour)
 
+        if(day):
+            job.day.on(day)
+
         # Write cron job to the crontab
         cron.write()
 
-        return {"message": f"Script will run daily at {hour:02d}:{minute:02d}"}
+        if(day):
+            return {"message": f"Script will run at {day:02d}, {hour:02d}:{minute:02d}"}
+        else:
+            return {"message": f"Script will run daily at {hour:02d}:{minute:02d}"}
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
