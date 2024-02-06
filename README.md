@@ -2,7 +2,7 @@
 
 ### How to install dependencies
 
-pip install -r requirements.txt
+```pip install -r requirements.txt```
 
 ### How to run Locally
 ```python -m uvicorn main:app --reload```
