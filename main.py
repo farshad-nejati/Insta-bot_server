@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pathlib import Path
 from crontab import CronTab
+import math
 
 import os
 from image_processing.image_processor import ImageProcessor
@@ -34,8 +35,8 @@ app.add_middleware(
 class SetTimeModel(BaseModel):
     caption: str
     day: int | None = None
-    hour: int
-    minute: int
+    hour: int| None = None
+    minute: int| None = None
 
 
 
@@ -168,10 +169,10 @@ async def extract_parameters(file_upload:UploadFile):
         hour = excel_data.at[0, 'hour']
         minute = excel_data.at[0, 'minute']
 
-        print(f"caption: {caption}")
-        print(f"day: {day}")
-        print(f"hour: {hour}")
-        print(f"minute: {minute}")
+        # print(f"caption: {caption}")
+        # print(f"day: {day}")
+        # print(f"hour: {hour}")
+        # print(f"minute: {minute}")
 
         script_dir_path = os.path.dirname(os.path.realpath(__file__))
         script_path = os.path.join(script_dir_path, 'insta_bot.py')
@@ -195,18 +196,22 @@ async def schedule_task(caption, day, hour, minute, script_path):
         if ( minute is not None and not 0 <= minute <= 59):
             raise HTTPException(status_code=400, detail="Invalid minute")
 
+        
         cron = CronTab(user=True)
         cron.remove_all()
         job = cron.new(command=f"python3 {script_path} '{caption}'")
         
-        if minute:
+
+
+        # print(f"day is not None: {day is not None and not math.isnan(day)}")
+
+        if minute is not None and not math.isnan(minute):
             job.minute.on(minute)
 
-            
-        if hour:
+        if hour is not None and not math.isnan(hour):
             job.hour.on(hour)
             
-        if day:
+        if day is not None and not math.isnan(day):
             job.day.on(day)
 
         # Write cron job to the crontab
