@@ -3,9 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pathlib import Path
 from crontab import CronTab
-import math
-from typing import Optional
 
+import math
 import os
 from image_processing.image_processor import ImageProcessor
 from instagram_uploader.uploader import InstagramUploader
@@ -35,9 +34,9 @@ app.add_middleware(
 
 class SetTimeModel(BaseModel):
     caption: str
-    day: Optional[float | int]
-    hour: Optional[float | int]
-    minute: Optional[float | int]
+    day: int | None = None
+    hour: int| None = None
+    minute: int| None = None
 
 
 
@@ -170,10 +169,14 @@ async def extract_parameters(file_upload:UploadFile):
         hour = excel_data.at[0, 'hour']
         minute = excel_data.at[0, 'minute']
 
-        # print(f"caption: {caption}")
-        # print(f"day: {day}")
-        # print(f"hour: {hour}")
-        # print(f"minute: {minute}")
+        print(f"caption: {caption}")
+        print(f"day: {day}")
+        print(f"hour: {hour}")
+        print(f"minute: {minute}")
+
+        day = None if math.isnan(day) else day
+        hour = None if math.isnan(hour) else hour
+        minute = None if math.isnan(minute) else minute
 
         script_dir_path = os.path.dirname(os.path.realpath(__file__))
         script_path = os.path.join(script_dir_path, 'insta_bot.py')
@@ -197,22 +200,25 @@ async def schedule_task(caption, day, hour, minute, script_path):
         if ( minute is not None and not 0 <= minute <= 59):
             raise HTTPException(status_code=400, detail="Invalid minute")
 
+
+        print('befor run cronjob')
         
         cron = CronTab(user=True)
         cron.remove_all()
         job = cron.new(command=f"python3 {script_path} '{caption}'")
         
 
+        print('after run cronjob')
 
-        # print(f"day is not None: {day is not None and not math.isnan(day)}")
+        print(f"day is not None: {day is not None}")
 
-        if minute is not None and not math.isnan(minute):
+        if minute is not None:
             job.minute.on(minute)
 
-        if hour is not None and not math.isnan(hour):
+        if hour is not None:
             job.hour.on(hour)
             
-        if day is not None and not math.isnan(day):
+        if day is not None:
             job.day.on(day)
 
         # Write cron job to the crontab
