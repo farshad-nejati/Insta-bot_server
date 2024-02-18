@@ -77,6 +77,7 @@ async def create_upload_file(file_upload: UploadFile):
             ExcelProcessor.initialize_master_excel_file()
 
         append_to_master_file(save_to)   
+        await extract_parameters(save_to)   
     except Exception as e:
             raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
 
@@ -92,6 +93,54 @@ async def create_upload_file(file_upload: UploadFile):
     
     # return {"filename": file_upload.filename}
 
+# API endpoint to set hour and minute
+@app.post("/set_time/")
+async def set_time(item:SetTimeModel):
+    script_dir_path = os.path.dirname(os.path.realpath(__file__))
+    script_path = os.path.join(script_dir_path, 'insta_bot.py')
+
+    caption= item.caption
+    day= item.day
+    hour= item.hour
+    minute= item.minute
+
+    try:
+        await schedule_task(caption, day, hour, minute, script_path)
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    # try:
+    #     # Validate hour and minute
+    #     if not 0 <= hour <= 23 or not 0 <= minute <= 59:
+    #         raise HTTPException(status_code=400, detail="Invalid hour or minute")
+
+    #     # Initialize cron job
+    #     cron = CronTab(user=True)
+
+    #     # Remove existing cron jobs
+    #     cron.remove_all()
+
+    #     # Add new cron job to run the script at the specified time
+    #     job = cron.new(command=f"python3 {script_path} '{caption}'")  # Replace '/path/to/your/script.py' with the actual path
+    #     job.minute.on(minute)
+    #     job.hour.on(hour)
+
+    #     if(day):
+    #         job.day.on(day)
+
+    #     # Write cron job to the crontab
+    #     cron.write()
+
+    #     if(day):
+    #         return {"message": f"Script will run at {day:02d}, {hour:02d}:{minute:02d}"}
+    #     else:
+    #         return {"message": f"Script will run daily at {hour:02d}:{minute:02d}"}
+    # except Exception as e:
+    #     print(e)
+    #     raise HTTPException(status_code=500, detail=str(e))
+    
+
 
 
 def append_to_master_file(file_upload:UploadFile):
@@ -105,46 +154,66 @@ def append_to_master_file(file_upload:UploadFile):
     excel_processor = ExcelProcessor(DIR_PATH)
     excel_processor.append_to_master_excel(excel_data_list)
 
-    print('excel parsed')
+    print('excel parsed and append to master file')
 
 
-# API endpoint to set hour and minute
-@app.post("/set_time/")
-async def set_time(item:SetTimeModel):
-    script_dir_path = os.path.dirname(os.path.realpath(__file__))
-    script_path = os.path.join(script_dir_path, 'insta_bot.py')
+async def extract_parameters(file_upload:UploadFile):
+    try:
+        # Open the Excel file
+        excel_data = pd.read_excel(file_upload, sheet_name=1)  # Read the second worksheet
 
-    caption= item.caption
-    day= item.day
-    hour= item.hour
-    minute= item.minute
-    
+        # Extract values for caption, day, minute, and hour (assuming only 1 row)
+        caption = excel_data.at[0, 'caption']
+        day = excel_data.at[0, 'day']
+        hour = excel_data.at[0, 'hour']
+        minute = excel_data.at[0, 'minute']
+
+        print(f"caption: {caption}")
+        print(f"day: {day}")
+        print(f"hour: {hour}")
+        print(f"minute: {minute}")
+
+        script_dir_path = os.path.dirname(os.path.realpath(__file__))
+        script_path = os.path.join(script_dir_path, 'insta_bot.py')
+
+        await schedule_task(caption, day, hour, minute, script_path)
+
+        return {"message": "Task scheduled successfully"}
+
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+async def schedule_task(caption, day, hour, minute, script_path):
     try:
         # Validate hour and minute
-        if not 0 <= hour <= 23 or not 0 <= minute <= 59:
-            raise HTTPException(status_code=400, detail="Invalid hour or minute")
+        if (hour is not None  and not 0 <= hour <= 23):
+            raise HTTPException(status_code=400, detail="Invalid hour")
 
-        # Initialize cron job
+        if ( minute is not None and not 0 <= minute <= 59):
+            raise HTTPException(status_code=400, detail="Invalid minute")
+
         cron = CronTab(user=True)
-
-        # Remove existing cron jobs
         cron.remove_all()
+        job = cron.new(command=f"python3 {script_path} '{caption}'")
+        
+        if minute:
+            job.minute.on(minute)
 
-        # Add new cron job to run the script at the specified time
-        job = cron.new(command=f"python3 {script_path} '{caption}'")  # Replace '/path/to/your/script.py' with the actual path
-        job.minute.on(minute)
-        job.hour.on(hour)
-
-        if(day):
+            
+        if hour:
+            job.hour.on(hour)
+            
+        if day:
             job.day.on(day)
 
         # Write cron job to the crontab
         cron.write()
 
-        if(day):
-            return {"message": f"Script will run at {day:02d}, {hour:02d}:{minute:02d}"}
-        else:
-            return {"message": f"Script will run daily at {hour:02d}:{minute:02d}"}
+        return {"message": f"Script scheduled successfully for '{caption}' at {day:02d}, {hour:02d}:{minute:02d}" if day else f"Script scheduled daily for '{caption}' at {hour:02d}:{minute:02d}"}
+        
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
