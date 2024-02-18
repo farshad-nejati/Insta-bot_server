@@ -4,6 +4,7 @@ from fastapi.responses import HTMLResponse
 from pathlib import Path
 from crontab import CronTab
 import math
+from typing import Optional
 
 import os
 from image_processing.image_processor import ImageProcessor
@@ -34,9 +35,9 @@ app.add_middleware(
 
 class SetTimeModel(BaseModel):
     caption: str
-    day: int | None = None
-    hour: int| None = None
-    minute: int| None = None
+    day: Optional[float | int]
+    hour: Optional[float | int]
+    minute: Optional[float | int]
 
 
 
