@@ -224,7 +224,7 @@ async def schedule_task(caption, day, hour, minute, script_path):
         # Write cron job to the crontab
         cron.write()
 
-        return {"message": f"Script scheduled successfully for '{caption}' at {day:02d}, {hour:02d}:{minute:02d}" if day else f"Script scheduled daily for '{caption}' at {hour:02d}:{minute:02d}"}
+        return {"message": f"Script scheduled successfully"}
         
     except Exception as e:
         print(e)
