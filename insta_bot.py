@@ -31,12 +31,12 @@ credential_file = "credentials.txt"
 dir_path = os.path.abspath(os.path.dirname(__file__))
 
 
-def geneateImage():
+def geneateImage(latex_equation, choices):
     do_logging('generating image...')
     # Example usage:
     image_processor = ImageProcessor(dir_path, output_prefix)
-    excel_processor = ExcelProcessor(dir_path)
-    output_image_path = image_processor.generate_image_from_excel(excel_processor)
+
+    output_image_path = image_processor.generate_image_from_excel(latex_equation, choices)
     do_logging('generate image successfull')
     do_logging(f"Image saved at: {output_image_path}")
 
@@ -62,15 +62,21 @@ if __name__ == '__main__':
     do_logging('\n')
 
      # Check if there is an argument
-    if len(sys.argv) < 2:
-        print("Failed to run. Usage: python3 /<file-path>/insta_bot.py '[caption]'")
-        do_logging("Failed to run. Usage: python3 /<file-path>/insta_bot.py '[caption]'")
+    if len(sys.argv) < 1:
+        print("Failed to run. Usage: python3 /<file-path>/insta_bot.py")
+        do_logging("Failed to run. Usage: python3 /<file-path>/insta_bot.py")
     else:
         # Get the caption from the command line argument
-        post_caption = sys.argv[1]
+        # post_caption = sys.argv[1]
 
-        geneateImage()
-        createInstaPost(post_caption)
+
+        excel_processor = ExcelProcessor(dir_path)
+        post_caption, latex_equation, choices =excel_processor.process_equation_file()
+
+        geneateImage(latex_equation=latex_equation, choices=choices)
+        createInstaPost(post_caption=post_caption)
+
+        excel_processor.remove_first_row()
 
 
 

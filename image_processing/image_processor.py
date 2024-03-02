@@ -30,7 +30,6 @@ class ImageProcessor:
 
         return output_path
 
-    def generate_image_from_excel(self, excel_processor):
-        latex_equation, choices = excel_processor.process_equation_file()
+    def generate_image_from_excel(self, latex_equation, choices):
         output_image_path = self.create_equation_image(latex_equation, choices )
         return output_image_path

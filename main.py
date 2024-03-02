@@ -85,14 +85,6 @@ async def create_upload_file(file_upload: UploadFile):
     # Return successful response
     return {"detail": "File uploaded successfully"}
 
-    
-
-    # data = await file_upload.read()
-    # save_to = UPLOAD_DIR / file_upload.filename
-    # with open(save_to, 'wb') as f:
-    #     f.write(data)
-    
-    # return {"filename": file_upload.filename}
 
 # API endpoint to set hour and minute
 @app.post("/set_time/")
@@ -164,12 +156,10 @@ async def extract_parameters(file_upload:UploadFile):
         excel_data = pd.read_excel(file_upload, sheet_name=1)  # Read the second worksheet
 
         # Extract values for caption, day, minute, and hour (assuming only 1 row)
-        caption = excel_data.at[0, 'caption']
         day = excel_data.at[0, 'day']
         hour = excel_data.at[0, 'hour']
         minute = excel_data.at[0, 'minute']
 
-        print(f"caption: {caption}")
         print(f"day: {day}")
         print(f"hour: {hour}")
         print(f"minute: {minute}")
@@ -181,7 +171,7 @@ async def extract_parameters(file_upload:UploadFile):
         script_dir_path = os.path.dirname(os.path.realpath(__file__))
         script_path = os.path.join(script_dir_path, 'insta_bot.py')
 
-        await schedule_task(caption, day, hour, minute, script_path)
+        await schedule_task(day, hour, minute, script_path)
 
         return {"message": "Task scheduled successfully"}
 
@@ -191,7 +181,7 @@ async def extract_parameters(file_upload:UploadFile):
 
 
 
-async def schedule_task(caption, day, hour, minute, script_path):
+async def schedule_task(day, hour, minute, script_path):
     try:
         # Validate hour and minute
         if (hour is not None  and not 0 <= hour <= 23):
@@ -205,7 +195,7 @@ async def schedule_task(caption, day, hour, minute, script_path):
         
         cron = CronTab(user=True)
         cron.remove_all()
-        job = cron.new(command=f"python3 {script_path} '{caption}'")
+        job = cron.new(command=f"python3 {script_path}")
         
 
         print('after run cronjob')
