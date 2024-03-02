@@ -66,8 +66,6 @@ if __name__ == '__main__':
         print("Failed to run. Usage: python3 /<file-path>/insta_bot.py")
         do_logging("Failed to run. Usage: python3 /<file-path>/insta_bot.py")
     else:
-        # Get the caption from the command line argument
-        # post_caption = sys.argv[1]
 
 
         excel_processor = ExcelProcessor(dir_path)
