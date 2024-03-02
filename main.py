@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pathlib import Path
 from crontab import CronTab
+from datetime import datetime
+import numpy as np
 
 import math
 import os
@@ -33,9 +35,8 @@ app.add_middleware(
 
 
 class SetTimeModel(BaseModel):
-    day: int | None = None
-    hour: int| None = None
-    minute: int| None = None
+    date: str | None = None
+    time: str
 
 
 
@@ -91,47 +92,27 @@ async def set_time(item:SetTimeModel):
     script_dir_path = os.path.dirname(os.path.realpath(__file__))
     script_path = os.path.join(script_dir_path, 'insta_bot.py')
 
-    day= item.day
-    hour= item.hour
-    minute= item.minute
+    date_str = item.date
+    time_str = item.time
+
+    time = datetime.strptime(time_str, "%H:%M")
+    date = None if date_str is None else datetime.strptime(date_str, "%m/%d/%Y")
+
+    month =  None if date is None else date.month
+    day =  None if date is None else date.day
+    hour= time.hour
+    minute= time.minute
+    
+    # print(f"month: {month}")
+    # print(f"day: {day}")
+    # print(f"hour: {hour}")
+    # print(f"minute: {minute}")
 
     try:
-        await schedule_task( day, hour, minute, script_path)
+        await schedule_task(month, day, hour, minute, script_path)
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
-    
-    # try:
-    #     # Validate hour and minute
-    #     if not 0 <= hour <= 23 or not 0 <= minute <= 59:
-    #         raise HTTPException(status_code=400, detail="Invalid hour or minute")
-
-    #     # Initialize cron job
-    #     cron = CronTab(user=True)
-
-    #     # Remove existing cron jobs
-    #     cron.remove_all()
-
-    #     # Add new cron job to run the script at the specified time
-    #     job = cron.new(command=f"python3 {script_path} '{caption}'")  # Replace '/path/to/your/script.py' with the actual path
-    #     job.minute.on(minute)
-    #     job.hour.on(hour)
-
-    #     if(day):
-    #         job.day.on(day)
-
-    #     # Write cron job to the crontab
-    #     cron.write()
-
-    #     if(day):
-    #         return {"message": f"Script will run at {day:02d}, {hour:02d}:{minute:02d}"}
-    #     else:
-    #         return {"message": f"Script will run daily at {hour:02d}:{minute:02d}"}
-    # except Exception as e:
-    #     print(e)
-    #     raise HTTPException(status_code=500, detail=str(e))
-    
-
 
 
 def append_to_master_file(file_upload:UploadFile):
@@ -150,26 +131,25 @@ def append_to_master_file(file_upload:UploadFile):
 
 async def extract_parameters(file_upload:UploadFile):
     try:
+        
         # Open the Excel file
         excel_data = pd.read_excel(file_upload, sheet_name=1)  # Read the second worksheet
 
-        # Extract values for caption, day, minute, and hour (assuming only 1 row)
-        day = excel_data.at[0, 'day']
-        hour = excel_data.at[0, 'hour']
-        minute = excel_data.at[0, 'minute']
+        # Extract Date and Time (assuming only 1 row)
+        date = excel_data.at[0, 'Date']
+        time = excel_data.at[0, 'Time']
+        date_is_nan = isinstance(date, float) and np.isnan(date)
+        time_is_nan = isinstance(time, float) and np.isnan(date)
 
-        print(f"day: {day}")
-        print(f"hour: {hour}")
-        print(f"minute: {minute}")
-
-        day = None if math.isnan(day) else day
-        hour = None if math.isnan(hour) else hour
-        minute = None if math.isnan(minute) else minute
+        month =  None if date_is_nan else date.month
+        day =  None if date_is_nan else date.day
+        hour =  None if time_is_nan else time.hour
+        minute =  None if time_is_nan else time.minute
 
         script_dir_path = os.path.dirname(os.path.realpath(__file__))
         script_path = os.path.join(script_dir_path, 'insta_bot.py')
 
-        await schedule_task(day, hour, minute, script_path)
+        await schedule_task(month, day, hour, minute, script_path)
 
         return {"message": "Task scheduled successfully"}
 
@@ -179,7 +159,7 @@ async def extract_parameters(file_upload:UploadFile):
 
 
 
-async def schedule_task(day, hour, minute, script_path):
+async def schedule_task(month, day, hour, minute, script_path):
     try:
         # Validate hour and minute
         if (hour is not None  and not 0 <= hour <= 23):
@@ -198,7 +178,7 @@ async def schedule_task(day, hour, minute, script_path):
 
         print('after run cronjob')
 
-        print(f"day is not None: {day is not None}")
+        # print(f"day is not None: {day is not None}")
 
         if minute is not None:
             job.minute.on(minute)
@@ -208,6 +188,9 @@ async def schedule_task(day, hour, minute, script_path):
             
         if day is not None:
             job.day.on(day)
+
+        if month is not None:
+            job.month.on(month)
 
         # Write cron job to the crontab
         cron.write()
