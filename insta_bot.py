@@ -71,6 +71,6 @@ if __name__ == '__main__':
         post_caption, latex_equation, choices =excel_processor.process_equation_file()
         
         geneateImage(latex_equation=latex_equation, choices=choices)
-        # createInstaPost(post_caption=post_caption)
+        createInstaPost(post_caption=post_caption)
 
-        # excel_processor.remove_first_row()
+        excel_processor.remove_first_row()
