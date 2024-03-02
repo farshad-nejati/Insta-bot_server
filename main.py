@@ -33,7 +33,6 @@ app.add_middleware(
 
 
 class SetTimeModel(BaseModel):
-    caption: str
     day: int | None = None
     hour: int| None = None
     minute: int| None = None
@@ -92,13 +91,12 @@ async def set_time(item:SetTimeModel):
     script_dir_path = os.path.dirname(os.path.realpath(__file__))
     script_path = os.path.join(script_dir_path, 'insta_bot.py')
 
-    caption= item.caption
     day= item.day
     hour= item.hour
     minute= item.minute
 
     try:
-        await schedule_task(caption, day, hour, minute, script_path)
+        await schedule_task( day, hour, minute, script_path)
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=str(e))
