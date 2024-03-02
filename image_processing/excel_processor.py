@@ -27,23 +27,6 @@ class ExcelProcessor:
         file_path = self.get_file_path()
         df = pd.read_excel(file_path, sheet_name=sheet_name)
         return df
-
-    def read_parameter_worksheet(self):
-        try:
-            df = self.get_df(sheet_name=1)  # Read the second worksheet
-            rows_list = []
-            for index, row in df.iterrows():
-                date = pd.to_datetime(row['Date'], format='%Y/%m/%d')
-                # time = pd.to_datetime(row['Time'], format='%H:%M').time()
-                time = pd.to_datetime(row['Time'], format='%H:%M:%S').time()
-
-                post_no = int(row['PostNo'])
-                rows_list.append({'Date': date, 'Time': time, 'PostNo': post_no})
-            
-            return rows_list
-        except Exception as e:
-            print(f"Error reading second worksheet: {e}")
-            return None
         
     def remove_first_row(self):
         file_path = self.get_file_path()
@@ -93,3 +76,21 @@ class ExcelProcessor:
             master_df.to_excel(self.file_name, index=False)
         except Exception as e:
             print(f"Error appending to master Excel file: {e}")
+
+
+    # def read_worksheet_parameters(self):
+    #     try:
+    #         df = self.get_df(sheet_name=1)  # Read the second worksheet
+    #         rows_list = []
+    #         for index, row in df.iterrows():
+    #             date = pd.to_datetime(row['Date'], format='%Y/%m/%d')
+    #             # time = pd.to_datetime(row['Time'], format='%H:%M').time()
+    #             time = pd.to_datetime(row['Time'], format='%H:%M:%S').time()
+
+    #             post_no = int(row['PostNo'])
+    #             rows_list.append({'Date': date, 'Time': time, 'PostNo': post_no})
+            
+    #         return rows_list
+    #     except Exception as e:
+    #         print(f"Error reading second worksheet: {e}")
+    #         return None
