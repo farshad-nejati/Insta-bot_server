@@ -22,12 +22,29 @@ class ExcelProcessor:
         return file_path
     
     
-    def get_df(self):
+
+    def get_df(self, sheet_name=0):
         file_path = self.get_file_path()
-        df = pd.read_excel(file_path)
+        df = pd.read_excel(file_path, sheet_name=sheet_name)
         return df
 
-    
+    def read_parameter_worksheet(self):
+        try:
+            df = self.get_df(sheet_name=1)  # Read the second worksheet
+            rows_list = []
+            for index, row in df.iterrows():
+                date = pd.to_datetime(row['Date'], format='%Y/%m/%d')
+                # time = pd.to_datetime(row['Time'], format='%H:%M').time()
+                time = pd.to_datetime(row['Time'], format='%H:%M:%S').time()
+
+                post_no = int(row['PostNo'])
+                rows_list.append({'Date': date, 'Time': time, 'PostNo': post_no})
+            
+            return rows_list
+        except Exception as e:
+            print(f"Error reading second worksheet: {e}")
+            return None
+        
     def remove_first_row(self):
         file_path = self.get_file_path()
         df = self.get_df()
